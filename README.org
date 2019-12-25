@@ -9,3 +9,22 @@ The datasources for permissions and for books are different.
 ** Step 1. Tutorial
 
 I started with this [[https://www.thomasvitale.com/spring-security-keycloak/][tutorial]].
+
+It gives us a basic understanding of Spring Security RBAC with two roles: ~Member~ and ~Librarian~.
+
+
+** TODO Step 2. RBAC -> ACL
+
+Follow disussion at:
+
+https://lists.jboss.org/pipermail/keycloak-user/2018-October/015882.html
+
+And implement new id-based roles for books
+
+** TODO Step 3. Permanent Books
+
+Replace a datasource for books with a database
+
+** TODO Step 4. Stress Test
+
+Make a stress test for this thing. Possibly compare with casbin implementation if it will be there.
