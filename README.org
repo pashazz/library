@@ -1,0 +1,11 @@
+* Library
+
+This project is intended to show Keycloak-based Spring Security configuration with ACLs.
+
+The datasources for permissions and for books are different.
+
+* Links
+
+** Step 1. Tutorial
+
+I started with this [[https://www.thomasvitale.com/spring-security-keycloak/][tutorial]].
