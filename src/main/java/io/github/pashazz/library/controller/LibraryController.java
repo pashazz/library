@@ -33,6 +33,7 @@ public class LibraryController {
 		return "books";
 	}
 
+
 	@GetMapping(value = "/manager")
 	public String getManager(Model model) {
 		configCommonAttributes(model);

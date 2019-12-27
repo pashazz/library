@@ -23,7 +23,10 @@ And implement new id-based roles for books
 
 ** TODO Step 3. Permanent Books
 
-Replace a datasource for books with a database
+Replace a datasource for books with a database.
+
+Use UMA. Use PhotoZ
+
 
 ** TODO Step 4. Stress Test
 
