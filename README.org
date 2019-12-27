@@ -21,6 +21,8 @@ https://lists.jboss.org/pipermail/keycloak-user/2018-October/015882.html
 
 And implement new id-based roles for books
 
+Clone https://github.com/keycloak/keycloak-quickstarts/tree/latest/app-authz-uma-photoz as inspiration
+
 ** TODO Step 3. Permanent Books
 
 Replace a datasource for books with a database.
