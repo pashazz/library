@@ -1,11 +1,14 @@
 package io.github.pashazz.library.controller;
 
+import io.github.pashazz.library.entity.Book;
 import io.github.pashazz.library.repository.BookRepository;
 import org.keycloak.KeycloakSecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +36,19 @@ public class LibraryController {
 		return "books";
 	}
 
+	@DeleteMapping(value = "/book/{id}")
+	public @ResponseBody
+	ResponseEntity deleteBook(@PathVariable("id") String id) {
+		bookRepository.deleteBook(id);
+		return new ResponseEntity(HttpStatus.NO_CONTENT); //we don't include the book there
+	}
+
+	@PostMapping(value = "/book")
+	public @ResponseBody
+	Book createBook(@RequestParam String title, @RequestParam String author) {
+		Book book = bookRepository.createBook(title, author);
+		return book;
+	}
 
 	@GetMapping(value = "/manager")
 	public String getManager(Model model) {

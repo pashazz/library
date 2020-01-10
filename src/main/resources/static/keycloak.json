@@ -1,0 +1,7 @@
+{
+  "realm": "demo",
+  "auth-server-url" : "http://localhost:8180/auth",
+  "ssl-required" : "external",
+  "resource" : "library",
+  "public-client" : true
+}

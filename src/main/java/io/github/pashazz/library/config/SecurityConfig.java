@@ -46,14 +46,14 @@ protected HttpSessionManager httpSessionManager() {
     return new HttpSessionManager();
 }
 
-// This is RBAC.
+
+
 @Override
 protected void configure(HttpSecurity http) throws Exception {
     super.configure(http);
+    System.out.println("Permit all");
     http
         .authorizeRequests()
-        .antMatchers("/books").hasAnyRole("Member", "Librarian")
-        .antMatchers("/manager/**").hasRole("Librarian")
         .anyRequest().permitAll();
 }
 }
