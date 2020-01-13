@@ -7,6 +7,7 @@ import org.keycloak.adapters.springsecurity.management.HttpSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
@@ -53,7 +54,15 @@ protected void configure(HttpSecurity http) throws Exception {
     super.configure(http);
     System.out.println("Permit all");
     http
-        .authorizeRequests()
-        .anyRequest().permitAll();
+            .csrf().disable()
+            .authorizeRequests()
+            .antMatchers("/").hasAnyRole("Librarian", "Member")
+            .antMatchers("/books").hasAnyRole("Librarian", "Member")
+            .antMatchers("/manager").hasRole("Librarian")
+            .antMatchers(HttpMethod.POST, "/book").hasRole("Librarian")
+            .antMatchers("/book/**").hasRole("Librarian")
+            .anyRequest().permitAll();
+
 }
+
 }

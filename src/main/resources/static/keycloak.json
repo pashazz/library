@@ -3,5 +3,9 @@
   "auth-server-url" : "http://localhost:8180/auth",
   "ssl-required" : "external",
   "resource" : "library",
-  "public-client" : true
+  "public-client" : false,
+  "cors" : true,
+  "credentials" : {
+    "secret" : "58bd0270-992e-4f8e-ad24-67930d8b0cc0"
+  }
 }

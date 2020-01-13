@@ -1,5 +1,7 @@
 package io.github.pashazz.library.entity;
 
+import org.hibernate.annotations.GenericGenerator;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -8,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
 /**
- * This represents a Book entity
+ * This represents a Book entity with an UUID as ID.
  */
 @Entity
 public class Book {
@@ -16,7 +18,8 @@ public class Book {
     public Book() {}
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator="system-uuid")
+    @GenericGenerator(name="system-uuid", strategy = "uuid")
     private String id;
 
     @Column(nullable = false)
@@ -34,7 +37,7 @@ public class Book {
     }
 
     @Column(nullable = false)
-    private String protectionId;
+    private String protectionId = "notset";
 
 
     public String getId() {

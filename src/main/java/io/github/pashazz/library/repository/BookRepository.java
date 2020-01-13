@@ -35,7 +35,6 @@ public class BookRepository {
         Map<String, Book> books = new HashMap<>();
         List<PermissionTicketRepresentation> permissions = getAuthzClient().protection().permission().find(null, null, null, getKeycloakSecurityContext().getToken().getSubject(),
                 true, true, null, null);
-
         for (PermissionTicketRepresentation permission : permissions) {
             Book book = books.get(permission.getResource());
             if (book == null) {
@@ -49,8 +48,9 @@ public class BookRepository {
 
     public Book createBook(String title, String author) {
         Book book = new Book(UUID.randomUUID().toString(), title, author);
+        book = this.em.merge(book);
+
         try {
-            this.em.persist(book);
             // Create a protected resource
             Set<ScopeRepresentation> scopes = Set.of(new ScopeRepresentation(SCOPE_BOOK_READ));
 
@@ -61,14 +61,33 @@ public class BookRepository {
                     String.format("/book/%s", book.getId()),
                     "book"
             );
-            book.setProtectionId(bookResource.getId());
-            bookResource.setOwner(request.getUserPrincipal().getName());
+            String userId = getKeycloakSecurityContext().getToken().getSubject();
+            bookResource.setOwner(userId);
             bookResource.setOwnerManagedAccess(true); //Для мандатного доступа - False.
+
+            ResourceRepresentation response = getAuthzClient().protection().resource().create(bookResource);
+
+            // Create a permission for this protected resource as t
+            book.setProtectionId(response.getId());
+            this.em.merge(book);
+
+            /*PermissionTicketRepresentation perm = new PermissionTicketRepresentation();
+            perm.setResource(response.getId());
+            perm.setOwner(response.getOwner().getId());
+            perm.setScope(SCOPE_BOOK_READ);
+            perm.setRequester(response.getOwner().getId());
+            perm.setGranted(true);
+            getAuthzClient().protection().permission().create(perm);
+
+             */
 
         }
         catch (Exception e ) {
-            getAuthzClient().protection().resource().delete(book.getProtectionId());;
+            getAuthzClient().protection().resource().delete(book.getProtectionId());
             throw e;
+        }
+        finally {
+            this.em.flush();
         }
         return book;
     }

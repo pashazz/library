@@ -1,6 +1,7 @@
 package io.github.pashazz.library.controller;
 
 import io.github.pashazz.library.entity.Book;
+import io.github.pashazz.library.form.BookForm;
 import io.github.pashazz.library.repository.BookRepository;
 import org.keycloak.KeycloakSecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +46,8 @@ public class LibraryController {
 
 	@PostMapping(value = "/book")
 	public @ResponseBody
-	Book createBook(@RequestParam String title, @RequestParam String author) {
-		Book book = bookRepository.createBook(title, author);
+	Book createBook(@RequestBody BookForm form) {
+		Book book = bookRepository.createBook(form.getTitle(), form.getAuthor());
 		return book;
 	}
 
@@ -64,7 +65,9 @@ public class LibraryController {
 	}
 
 	private void configCommonAttributes(Model model) {
-		model.addAttribute("name", getKeycloakSecurityContext().getIdToken().getGivenName());
+		// Don't use getIdToken, as it's only supplied by GUI interface, not by grant_type=password authorization
+
+		model.addAttribute("name", getKeycloakSecurityContext().getToken().getGivenName());
 	}
 
 	private KeycloakSecurityContext getKeycloakSecurityContext() {
