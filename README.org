@@ -6,6 +6,8 @@ The datasources for permissions and for books are different.
 
 * Links
 
+https://www.keycloak.org/docs/latest/authorization_services/ Read it and try to use permission ticket.
+
 ** Step 1. Tutorial
 
 I started with this [[https://www.thomasvitale.com/spring-security-keycloak/][tutorial]].

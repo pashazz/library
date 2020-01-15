@@ -60,7 +60,7 @@ protected void configure(HttpSecurity http) throws Exception {
             .antMatchers("/books").hasAnyRole("Librarian", "Member")
             .antMatchers("/manager").hasRole("Librarian")
             .antMatchers(HttpMethod.POST, "/book").hasRole("Librarian")
-            .antMatchers("/book/**").hasRole("Librarian")
+            .antMatchers("/book/**").hasAnyRole("Librarian", "Member")
             .anyRequest().permitAll();
 
 }

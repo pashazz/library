@@ -37,6 +37,14 @@ public class LibraryController {
 		return "books";
 	}
 
+	@GetMapping(value = "/book/{id}")
+	public @ResponseBody
+	Book getBook(@PathVariable("id") String id) {
+		// Check if we can read the book
+
+		return bookRepository.getBook(id);
+	}
+
 	@DeleteMapping(value = "/book/{id}")
 	public @ResponseBody
 	ResponseEntity deleteBook(@PathVariable("id") String id) {
