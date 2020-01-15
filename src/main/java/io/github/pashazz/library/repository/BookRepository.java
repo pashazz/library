@@ -1,9 +1,12 @@
 package io.github.pashazz.library.repository;
 
 import io.github.pashazz.library.entity.Book;
+import io.github.pashazz.library.exception.ForbiddenException;
 import io.github.pashazz.library.exception.NotFoundException;
 import org.apache.commons.logging.LogFactory;
+import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.ClientAuthorizationContext;
 import org.keycloak.authorization.client.resource.ProtectionResource;
@@ -11,6 +14,7 @@ import org.keycloak.representations.idm.authorization.PermissionRequest;
 import org.keycloak.representations.idm.authorization.PermissionTicketRepresentation;
 import org.keycloak.representations.idm.authorization.ResourceRepresentation;
 import org.keycloak.representations.idm.authorization.ScopeRepresentation;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
@@ -36,15 +40,24 @@ public class BookRepository {
     private HttpServletRequest request;
 
     public static final String  SCOPE_BOOK_READ = "book:read";
+    public static final String ROLE_LIBRARIAN = "ROLE_Librarian";
 
-    public Collection<Book> readAll() {
-        Map<String, Book> books = new HashMap<>();
+    public boolean isLibrarian() {
+        var principal = (KeycloakAuthenticationToken) request.getUserPrincipal();
+        for (var authority : principal.getAuthorities()) {
+            if (authority.getAuthority().equals(ROLE_LIBRARIAN)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Collection<Book> readAllShared() {
+                Map<String, Book> books = new HashMap<>();
 
         String userId = getUserId();
         LOG.debug("obtaining all books for " + userId);
-        String [] res = getAuthzClient().protection().resource().find(null, null, null, null, "book", null, false, null, null);
-        System.out.println(res.toString());
-        List<PermissionTicketRepresentation> permissions = getAuthzClient().protection().permission().find(null, null, null, userId,
+        List<PermissionTicketRepresentation> permissions = getAuthzClient().protection().permission().find(null, null, userId, userId,
                 true, true, null, null);
         for (PermissionTicketRepresentation permission : permissions) {
             Book book = books.get(permission.getResource());
@@ -63,10 +76,26 @@ public class BookRepository {
         return books.values();
     }
 
+    public Collection<Book> readAllLibrarian() {
+         return  em.createQuery("from Book ", Book.class).getResultList();
+    }
+
+    public Collection<Book> readAll() {
+        if (isLibrarian()) {
+            return readAllLibrarian();
+        } else {
+            return readAllShared();
+        }
+    }
+
+
     public Book createBook(String title, String author) {
+         if (!isLibrarian()) {
+             LOG.debug("User " + getUserId() + " can't create books since he's no Librarian");
+             throw new ForbiddenException();
+         }
         Book book = new Book(UUID.randomUUID().toString(), title, author);
         book = this.em.merge(book);
-
         try {
             // Create a protected resource
             Set<ScopeRepresentation> scopes = Set.of(new ScopeRepresentation(SCOPE_BOOK_READ));
@@ -88,7 +117,9 @@ public class BookRepository {
             book.setProtectionId(response.getId());
             this.em.merge(book);
 
-            /*PermissionTicketRepresentation perm = new PermissionTicketRepresentation();
+            /*
+            // This is how we might create a permission using Java API
+            PermissionTicketRepresentation perm = new PermissionTicketRepresentation();
             perm.setResource(response.getId());
             perm.setScope(SCOPE_BOOK_READ);
             perm.setOwner(userId);
@@ -113,6 +144,10 @@ public class BookRepository {
     }
 
     public void deleteBook(String id) {
+         if (!isLibrarian()) {
+             LOG.debug("User " + getUserId() + " can't delete books since he's no Librarian");
+             throw new ForbiddenException();
+         }
         Book book = getBook(id);
         //Delete a protected resource
         String uri = String.format("/book/%s", book.getId());
@@ -135,9 +170,13 @@ public class BookRepository {
     }
 
     public Book getBook(String id) {
+         Book book = this.em.find(Book.class, id);
+         if (isLibrarian()) {
+             return book;
+         }
         // Check if we can read the book
         ProtectionResource protection = getAuthzClient().protection();
-        Book book = this.em.find(Book.class, id);
+
         if (book == null) {
             // wrong id
             LOG.debug("Incorrect book ID: " + id);
