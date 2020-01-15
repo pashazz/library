@@ -4,6 +4,69 @@ This project is intended to show Keycloak-based Spring Security configuration wi
 
 The datasources for permissions and for books are different.
 
+* Keycloak setup
+
+
+Create a realm named "library" in Keycloak (this is specified in application.properties)
+
+Create realm level roles: ROLE_Librarian and ROLE_Member.
+
+Keycloak url and client id/secret is sublect to change in [[./src/main/resources/application.properties][application.properties]]
+
+* How to use
+
+Suppose this app is at localhost:8080; keycloak is at localhost:8180
+
+** Create a book
+Using cookies from browser (logged in as user who is a ROLE_Librarian)
+
+#+begin_src json
+POST http://localhost:8080/book
+
+{
+  "title": "Book 1",
+  "author": "Woland"
+}
+
+#+end_src
+
+Should return
+
+#+begin_src
+{
+"id": "ff8081816fa893c8016fa8958c390000",
+"title": "Book 1",
+"author": "Woland",
+"protectionId": "774ac2d5-7ec5-4b4a-a7c5-d7c8e9245406"
+}
+#+end_src
+
+Remember =protectionId=.
+
+** Share a book with user
+
+1. Login to Keycloak as user who created a book
+#+begin_src shell
+curl --data "grant_type=password&client_id=library&client_secret=58bd0270-992e-4f8e-ad24-67930d8b0cc0&username=librarian&password=lib" http://localhost:8180/auth/realms/demo/protocol/openid-connect/token
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjdkZZRHpuOER1cndqWW1JZlY2MVFPNG96VklHNmFkc3pad3RGQnJIZGR3In0.eyJqdGkiOiIzYjUwMWZmMi0yYTkxLTQwNjktYWJiZi1kNjE5Y2FhZTY0MjkiLCJleHAiOjE1NzkwODIyOTIsIm5iZiI6MCwiaWF0IjoxNTc5MDgxOTkyLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgxODAvYXV0aC9yZWFsbXMvZGVtbyIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGVkMmJjYS1jYWM3LTQ4MGItOTk3Yy01MDE4YzlhZjAzZmMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJsaWJyYXJ5IiwiYXV0aF90aW1lIjowLCJzZXNzaW9uX3N0YXRlIjoiMDZjNmExNDAtNWRiYy00ZDVhLWI1M2ItNjIzZDA5YjhjODRhIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJST0xFX0xpYnJhcmlhbiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsInByZWZlcnJlZF91c2VybmFtZSI6ImxpYnJhcmlhbiJ9.fjRMt41dke6TBqag43a2Oj1ifC5HO0O_fRS5v7FrV8DrqGQHrw6kJpXp6COrPzEiCdt2UUCmCzclpd2B2SjEtBckGZclWFc1H5D1B4iFq1ICp8nDCZnfmDNBYH1kU1YtSm83WGq-5zLA7GEi87XrC2F-7JqorZ02HULAkMDEINTffNxuoFeK4Z58djVikNGZyJvQMFPYheH07Bw5ouoakHRgTB3ICwSm48C82OxTFDKSo3olMFS6LKHqPstNzijVl2SWWZo1nJ1w0J4PO3Or0EUCvz-d6WNTj4fL8S5LAU0QCU6LA5ecsNGocxuQ74YqLypfjddiPoLDv95759ifzQ","expires_in":300,"refresh_expires_in":1800,"refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmYjA0Nzc4ZS1iZGJkLTRmYWItODYzMi0zNGFkMDJhZDUwZDAifQ.eyJqdGkiOiJhZTdlM2M1OC03YThmLTRhMzQtOTU2YS1jNDRmZTgyNTdjYzgiLCJleHAiOjE1NzkwODM3OTIsIm5iZiI6MCwiaWF0IjoxNTc5MDgxOTkyLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgxODAvYXV0aC9yZWFsbXMvZGVtbyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODE4MC9hdXRoL3JlYWxtcy9kZW1vIiwic3ViIjoiNTBlZDJiY2EtY2FjNy00ODBiLTk5N2MtNTAxOGM5YWYwM2ZjIiwidHlwIjoiUmVmcmVzaCIsImF6cCI6ImxpYnJhcnkiLCJhdXRoX3RpbWUiOjAsInNlc3Npb25fc3RhdGUiOiIwNmM2YTE0MC01ZGJjLTRkNWEtYjUzYi02MjNkMDliOGM4NGEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiUk9MRV9MaWJyYXJpYW4iLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIn0.l_qgBsP9y5-FeTdqT_dympCij60a_42YjDzq4BjNR-Q","token_type":"bearer","not-before-policy":0,"session_state":"06c6a140-5dbc-4d5a-b53b-623d09b8c84a","scope":"profile email"}%
+#+end_src
+
+Remember ="access_token"=
+
+Share using =protectionId=:
+
+
+#+begin_src shell
+curl -X POST http://localhost:8180/auth/realms/demo/authz/protection/permission/ticket -H 'Authorization: Bearer <access_token> -H 'Content-Type: application/json' -d '{
+"resource": <protectionId>,
+"requester": <user_id_with_whom_to_share>,
+"granted": true,
+"scopeName": "book:read"
+'}
+#+end_src
+
+The book should apper in book list for the said user.
+
 * Links
 
 https://www.keycloak.org/docs/latest/authorization_services/ Read it and try to use permission ticket.
@@ -15,7 +78,7 @@ I started with this [[https://www.thomasvitale.com/spring-security-keycloak/][tu
 It gives us a basic understanding of Spring Security RBAC with two roles: ~Member~ and ~Librarian~.
 
 
-** TODO Step 2. RBAC -> ACL
+** DONE Step 2. RBAC -> ACL
 
 Follow disussion at:
 
@@ -25,7 +88,7 @@ And implement new id-based roles for books
 
 Clone https://github.com/keycloak/keycloak-quickstarts/tree/latest/app-authz-uma-photoz as inspiration
 
-** TODO Step 3. Permanent Books
+** DONE Step 3. Permanent Books
 
 Replace a datasource for books with a database.
 
