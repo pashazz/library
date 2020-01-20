@@ -10,10 +10,7 @@ import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.ClientAuthorizationContext;
 import org.keycloak.authorization.client.resource.ProtectionResource;
-import org.keycloak.representations.idm.authorization.PermissionRequest;
-import org.keycloak.representations.idm.authorization.PermissionTicketRepresentation;
-import org.keycloak.representations.idm.authorization.ResourceRepresentation;
-import org.keycloak.representations.idm.authorization.ScopeRepresentation;
+import org.keycloak.representations.idm.authorization.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Repository;
 
@@ -57,7 +54,18 @@ public class BookRepository {
 
         String userId = getUserId();
         LOG.debug("obtaining all books for " + userId);
-        List<PermissionTicketRepresentation> permissions = getAuthzClient().protection().permission().find(null, null, userId, userId,
+        String [] res = getAuthzClient().protection().resource().findAll();
+        var ar = new AuthorizationRequest();
+
+        var response = getAuthzClient().authorization().authorize(ar);
+        var rpt = getAuthzClient().protection().introspectRequestingPartyToken(response.getToken());
+        for (Permission granted : rpt.getPermissions()) {
+            System.out.println(granted.toString());
+        }
+
+
+
+        List<PermissionTicketRepresentation> permissions = getAuthzClient().protection().permission().find(null, null, null, userId,
                 true, true, null, null);
         for (PermissionTicketRepresentation permission : permissions) {
             Book book = books.get(permission.getResource());
@@ -81,11 +89,11 @@ public class BookRepository {
     }
 
     public Collection<Book> readAll() {
-        if (isLibrarian()) {
-            return readAllLibrarian();
-        } else {
+       // if (isLibrarian()) {
+//            return readAllLibrarian();
+//        } else {
             return readAllShared();
-        }
+//        }
     }
 
 
