@@ -52,17 +52,17 @@ protected HttpSessionManager httpSessionManager() {
 @Override
 protected void configure(HttpSecurity http) throws Exception {
     super.configure(http);
-    System.out.println("Permit all");
+    /*
+* Here you can provide additional restrictions not imported from Keycloak.
+* This is reasonable default - permit any authenticated request.
+* Otherwise redirect to Keycloak 
+ */
+
     http
             .csrf().disable()
             .authorizeRequests()
-            .antMatchers("/").hasAnyRole("Librarian", "Member")
-            .antMatchers("/books").hasAnyRole("Librarian", "Member")
-            .antMatchers("/manager").hasRole("Librarian")
-            .antMatchers(HttpMethod.POST, "/book").hasRole("Librarian")
-            .antMatchers("/book/**").hasAnyRole("Librarian", "Member")
+            .antMatchers("/**").authenticated()
             .anyRequest().permitAll();
-
 }
 
 }
